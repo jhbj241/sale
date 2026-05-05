@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Bot Sales Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -16,33 +16,35 @@
       <div class="logo-icon">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
       </div>
-      <h1>Bot Sales</h1>
-      <p>Messenger Bot Manager</p>
+      <div>
+        <h1>Bot Sales</h1>
+        <p>Messenger Bot Manager</p>
+      </div>
     </div>
     <nav class="nav">
       <div class="nav-section">Overview</div>
       <button class="nav-item active" onclick="showPage('dashboard')">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-        Dashboard
+        <span>Dashboard</span>
       </button>
       <div class="nav-section">Manage</div>
       <button class="nav-item" onclick="showPage('customers')">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        Customers
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1[...]"/>  </svg>
+        <span>Customers</span>
         <span id="pending-dot" class="notif" style="display:none;margin-left:auto;"></span>
       </button>
       <button class="nav-item" onclick="showPage('sales')">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-        Sales Log
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.4[...]"/></svg>
+        <span>Sales Log</span>
       </button>
       <div class="nav-section">Reports</div>
       <button class="nav-item" onclick="showPage('revenue')">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
-        Revenue
+        <span>Revenue</span>
       </button>
       <button class="nav-item" onclick="showPage('expiring')">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-        Expiring Soon
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.[...]"/></svg>
+        <span>Expiring Soon</span>
         <span id="expiring-dot" class="notif" style="display:none;margin-left:auto;"></span>
       </button>
     </nav>
@@ -83,7 +85,7 @@
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="dashboard-grid">
         <div class="card">
           <div class="card-header">
             <span class="card-title">Monthly Revenue</span>
@@ -113,16 +115,14 @@
     <!-- CUSTOMERS -->
     <div class="page" id="page-customers">
       <div class="page-header">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <h2>Customers</h2>
-            <p>Manage bot access & approvals</p>
-          </div>
-          <button class="btn btn-primary" onclick="openModal('customer')">
-            <svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            Add Customer
-          </button>
+        <div>
+          <h2>Customers</h2>
+          <p>Manage bot access & approvals</p>
         </div>
+        <button class="btn btn-primary" onclick="openModal('customer')">
+          <svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          Add Customer
+        </button>
       </div>
       <div class="card">
         <div class="card-header" style="margin-bottom:0">
@@ -133,7 +133,7 @@
             <button class="tab" onclick="filterCustomers('Expired')">Expired</button>
           </div>
           <div class="search-bar">
-            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.2[...]"/></svg>
             <input type="text" placeholder="Search..." id="customer-search" oninput="renderCustomers()">
           </div>
         </div>
@@ -144,16 +144,14 @@
     <!-- SALES -->
     <div class="page" id="page-sales">
       <div class="page-header">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <h2>Sales Log</h2>
-            <p>All payment records</p>
-          </div>
-          <button class="btn btn-primary" onclick="openModal('sale')">
-            <svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            Record Sale
-          </button>
+        <div>
+          <h2>Sales Log</h2>
+          <p>All payment records</p>
         </div>
+        <button class="btn btn-primary" onclick="openModal('sale')">
+          <svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          Record Sale
+        </button>
       </div>
       <div class="card">
         <div class="table-wrap" id="sales-table"></div>
@@ -233,11 +231,11 @@
       </div>
     </div>
     <div class="form-row full">
-  <div class="form-group">
-    <label>Group Chat ID</label>
-    <input type="text" id="c-group-id" placeholder="e.g. -1001234567890">
-  </div>
-</div>
+      <div class="form-group">
+        <label>Group Chat ID</label>
+        <input type="text" id="c-group-id" placeholder="e.g. -1001234567890">
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label>Plan *</label>
