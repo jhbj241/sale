@@ -158,7 +158,7 @@ async function saveCustomer() {
   method: "POST",
   body: new URLSearchParams({
     data: JSON.stringify({
-      type: "addCustomer",
+      type: idx >= 0 ? "updateCustomer" : "addCustomer",
       data: obj
     })
   })
