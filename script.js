@@ -232,16 +232,41 @@ async function saveSale() {
 }
 
 // ─── DELETE ───────────────────────────────────────────────────
-function deleteCustomer(id) {
+async function deleteCustomer(id) {
   if (!confirm('Delete this customer?')) return;
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: new URLSearchParams({
+      data: JSON.stringify({
+        type: "deleteCustomer",
+        data: { id }
+      })
+    })
+  });
+
   customers = customers.filter(c => c.id !== id);
-  save(); renderCustomers(); renderDots(); toast('Deleted');
+  renderCustomers();
+  renderDots();
+  toast('Deleted');
 }
 
-function deleteSale(id) {
+async function deleteSale(id) {
   if (!confirm('Delete this sale record?')) return;
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: new URLSearchParams({
+      data: JSON.stringify({
+        type: "deleteSale",
+        data: { id }
+      })
+    })
+  });
+
   sales = sales.filter(s => s.id !== id);
-  save(); renderSales(); toast('Deleted');
+  renderSales();
+  toast('Deleted');
 }
 
 function toggleApproval(id) {
