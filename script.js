@@ -123,6 +123,7 @@ document.getElementById('c-start').addEventListener('input', calcExpiry);
 document.getElementById('c-plan').addEventListener('change', calcExpiry);
 document.getElementById('c-custom-days').addEventListener('input', calcExpiry);
 
+
 // ─── SAVE CUSTOMER ───────────────────────────────────────────
 async function saveCustomer() {
   const name = document.getElementById('c-name').value.trim();
@@ -153,21 +154,23 @@ async function saveCustomer() {
     createdAt: new Date().toISOString()
   };
 
+  // ✅ FIX: define idx BEFORE using it
+  const idx = customers.findIndex(x => x.id === id);
+
   try {
     const res = await fetch(API_URL, {
-  method: "POST",
-  body: new URLSearchParams({
-    data: JSON.stringify({
-      type: idx >= 0 ? "updateCustomer" : "addCustomer",
-      data: obj
-    })
-  })
-});
+      method: "POST",
+      body: new URLSearchParams({
+        data: JSON.stringify({
+          type: idx >= 0 ? "updateCustomer" : "addCustomer",
+          data: obj
+        })
+      })
+    });
 
     const result = await res.json();
 
     // update UI ONLY after success
-    const idx = customers.findIndex(x => x.id === id);
     if (idx >= 0) customers[idx] = obj;
     else customers.push(obj);
 
