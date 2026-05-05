@@ -696,13 +696,14 @@ async function saveCustomer() {
 
   try {
     const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "addCustomer",
-        data: obj
-      })
-    });
+  method: "POST",
+  body: new URLSearchParams({
+    data: JSON.stringify({
+      type: "addCustomer",
+      data: obj
+    })
+  })
+});
 
     const result = await res.json();
 
@@ -749,13 +750,14 @@ async function saveSale() {
 
   try {
     await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "addSale",
-        data: saleData
-      })
-    });
+  method: "POST",
+  body: new URLSearchParams({
+    data: JSON.stringify({
+      type: "addSale",
+      data: saleData
+    })
+  })
+});
 
     sales.push(saleData);
 
