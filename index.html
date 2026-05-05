@@ -847,7 +847,6 @@ function autoExpire() {
   customers.forEach(c => {
     if (c.status === 'Active' && daysLeft(c.expiry) < 0) c.status = 'Expired';
   });
-  save();
 }
 
 // ─── INIT ────────────────────────────────────────────────────
@@ -855,8 +854,39 @@ async function loadData() {
   const res = await fetch(API_URL);
   const data = await res.json();
 
-  customers = data.customers || [];
-  sales = data.sales || [];
+  // ✅ FIXED MAPPING HERE
+  customers = (data.customers || []).map(c => ({
+    id: String(c.ID),
+    name: c.FullName,
+    contact: String(c.Phone),
+    group: c.GroupChatName,
+    groupId: String(c.GroupChatID),
+    plan: c.Plan,
+    price: Number(c.Price),
+    start: c.StartDate?.split('T')[0],
+    expiry: c.ExpiryDate?.split('T')[0],
+    status: c.Status,
+    payment: c.PaymentMethod,
+    notes: c.Notes,
+    createdAt: c.CreatedAt,
+    customDays: null
+  }));
+
+  sales = (data.sales || []).map(s => {
+    const cust = customers.find(c => c.name === s.CustomerName);
+    return {
+      id: String(s.ID),
+      custId: cust?.id || null,
+      customerName: s.CustomerName,
+      amount: Number(s.Amount),
+      date: s.PaymentDate?.split('T')[0],
+      month: s.PaymentDate?.slice(0,7),
+      method: s.PaymentMethod,
+      plan: s.PlanPeriod,
+      txn: s.TransactionID,
+      recordedAt: s.RecordedAt
+    };
+  });
 
   renderDashboard();
   renderCustomers();
