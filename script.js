@@ -126,6 +126,21 @@ document.getElementById('c-start').addEventListener('input', calcExpiry);
 document.getElementById('c-plan').addEventListener('change', calcExpiry);
 document.getElementById('c-custom-days').addEventListener('input', calcExpiry);
 
+// ─── API ─────────────────────────────────────────────────────
+// Every write goes through here and throws on failure, so callers only update the screen on success.
+async function api(type, data) {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: new URLSearchParams({ data: JSON.stringify({ type, data }) })
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  // shortcut: a non-JSON reply counts as success, since we don't know what the Apps Script returns; make it always return JSON with a status to tighten this
+  const result = await res.json().catch(() => ({}));
+  if (result.status === 'error' || result.success === false || result.error) {
+    throw new Error(result.error || result.message || 'API error');
+  }
+  return result;
+}
 
 // ─── SAVE CUSTOMER ───────────────────────────────────────────
 async function saveCustomer() {
@@ -161,17 +176,7 @@ async function saveCustomer() {
   const idx = customers.findIndex(x => x.id === id);
 
   try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: new URLSearchParams({
-        data: JSON.stringify({
-          type: idx >= 0 ? "updateCustomer" : "addCustomer",
-          data: obj
-        })
-      })
-    });
-
-    const result = await res.json();
+    await api(idx >= 0 ? "updateCustomer" : "addCustomer", obj);
 
     // update UI ONLY after success
     if (idx >= 0) customers[idx] = obj;
@@ -214,15 +219,7 @@ async function saveSale() {
   };
 
   try {
-    await fetch(API_URL, {
-  method: "POST",
-  body: new URLSearchParams({
-    data: JSON.stringify({
-      type: "addSale",
-      data: saleData
-    })
-  })
-});
+    await api("addSale", saleData);
 
     sales.push(saleData);
 
@@ -241,46 +238,56 @@ async function saveSale() {
 async function deleteCustomer(id) {
   if (!confirm('Delete this customer?')) return;
 
-  await fetch(API_URL, {
-    method: "POST",
-    body: new URLSearchParams({
-      data: JSON.stringify({
-        type: "deleteCustomer",
-        data: { id }
-      })
-    })
-  });
-
-  customers = customers.filter(c => c.id !== id);
-  renderCustomers();
-  renderDots();
-  toast('Customer deleted');
+  try {
+    await api("deleteCustomer", { id });
+    customers = customers.filter(c => c.id !== id);
+    renderCustomers();
+    renderDots();
+    toast('Customer deleted', 'success');
+  } catch (err) {
+    console.error(err);
+    toast('Failed to delete customer', 'error');
+  }
 }
 
 async function deleteSale(id) {
   if (!confirm('Delete this sale record?')) return;
 
-  await fetch(API_URL, {
-    method: "POST",
-    body: new URLSearchParams({
-      data: JSON.stringify({
-        type: "deleteSale",
-        data: { id }
-      })
-    })
-  });
-
-  sales = sales.filter(s => s.id !== id);
-  renderSales();
-  toast('Sale deleted');
+  try {
+    await api("deleteSale", { id });
+    sales = sales.filter(s => s.id !== id);
+    renderSales();
+    toast('Sale deleted', 'success');
+  } catch (err) {
+    console.error(err);
+    toast('Failed to delete sale', 'error');
+  }
 }
 
-function toggleApproval(id) {
+const togglesInFlight = new Set();
+
+async function toggleApproval(id) {
   const c = customers.find(x => x.id === id);
-  if (!c) return;
-  if (c.status === 'Active') c.status = 'Pending';
-  else if (c.status === 'Pending' || c.status === 'Approved') c.status = 'Active';
-  save(); renderCustomers(); renderDots();
+  if (!c || togglesInFlight.has(id)) return;
+  let next;
+  if (c.status === 'Active') next = 'Pending';
+  else if (c.status === 'Pending' || c.status === 'Approved') next = 'Active';
+  else return; // Expired: change it through Edit
+
+  const prev = c.status;
+  c.status = next;            // flip right away so the switch feels instant
+  renderCustomers(); renderDots();
+  togglesInFlight.add(id);
+  try {
+    await api("updateCustomer", c);
+  } catch (err) {
+    console.error(err);
+    c.status = prev;          // put it back if Sheets didn't take it
+    renderCustomers(); renderDots();
+    toast('Failed to update approval', 'error');
+  } finally {
+    togglesInFlight.delete(id);
+  }
 }
 
 // ─── RENDER HELPERS ──────────────────────────────────────────
