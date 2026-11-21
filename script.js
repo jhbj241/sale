@@ -11,10 +11,10 @@ let currentExpiryDays = 3;
 
 // ─── PLAN CONFIG ────────────────────────────────────────────
 const PLANS = {
-  '7days':  { label: '7 Days',  days: 7,  price: 25 },
-  '15days': { label: '15 Days', days: 15, price: 50 },
-  '30days': { label: '30 Days', days: 30, price: 100 },
-  '60days': { label: '60 Days', days: 60, price: 190 },
+  '7days':  { label: '7 days',  days: 7,  price: 25 },
+  '15days': { label: '15 days', days: 15, price: 50 },
+  '30days': { label: '30 days', days: 30, price: 100 },
+  '60days': { label: '60 days', days: 60, price: 190 },
   'custom': { label: 'Custom',  days: 0,  price: 0 }
 };
 
@@ -44,6 +44,9 @@ function fmtDate(d) {
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 
+// One money format everywhere
+function tk(n) { return '৳' + Math.round(n).toLocaleString(); }
+
 // ─── NAVIGATION ─────────────────────────────────────────────
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -63,7 +66,7 @@ function showPage(id) {
 function openModal(type, id) {
   if (type === 'customer') {
     document.getElementById('edit-customer-id').value = id || '';
-    document.getElementById('customer-modal-title').textContent = id ? 'Edit Customer' : 'Add New Customer';
+    document.getElementById('customer-modal-title').textContent = id ? 'Edit customer' : 'Add customer';
     if (id) {
       const c = customers.find(x => x.id === id);
       if (c) {
@@ -131,7 +134,7 @@ async function saveCustomer() {
   const start = document.getElementById('c-start').value;
 
   if (!name || !contact || !start) {
-    toast('Please fill required fields', 'error');
+    toast('Fill in the required fields', 'error');
     return;
   }
 
@@ -178,7 +181,7 @@ async function saveCustomer() {
     renderCustomers();
     renderDots();
 
-    toast(idx >= 0 ? 'Customer updated!' : 'Customer added!', 'success');
+    toast(idx >= 0 ? 'Customer updated' : 'Customer added', 'success');
 
   } catch (err) {
     console.error(err);
@@ -193,7 +196,7 @@ async function saveSale() {
   const date = document.getElementById('s-date').value;
 
   if (!custId || !amount || !date) {
-    toast('Please fill required fields', 'error');
+    toast('Fill in the required fields', 'error');
     return;
   }
 
@@ -226,7 +229,7 @@ async function saveSale() {
     closeModal('sale');
     renderSales();
 
-    toast('Payment recorded!', 'success');
+    toast('Payment recorded', 'success');
 
   } catch (err) {
     console.error(err);
@@ -251,7 +254,7 @@ async function deleteCustomer(id) {
   customers = customers.filter(c => c.id !== id);
   renderCustomers();
   renderDots();
-  toast('Deleted');
+  toast('Customer deleted');
 }
 
 async function deleteSale(id) {
@@ -269,7 +272,7 @@ async function deleteSale(id) {
 
   sales = sales.filter(s => s.id !== id);
   renderSales();
-  toast('Deleted');
+  toast('Sale deleted');
 }
 
 function toggleApproval(id) {
@@ -286,14 +289,15 @@ function statusBadge(s) {
   return `<span class="badge ${map[s]||'badge-pending'}">${s}</span>`;
 }
 
+// Signature: days-left meter
 function expiryBar(expiry) {
-  const dl = daysLeft(expiry);
   if (!expiry) return '—';
-  let color = '#22c55e', pct = Math.min(100, Math.max(0, (dl/30)*100));
-  if (dl <= 0) { color = '#ef4444'; pct = 100; }
-  else if (dl <= 3) color = '#ef4444';
-  else if (dl <= 7) color = '#f59e0b';
-  const label = dl <= 0 ? 'Expired' : dl === 1 ? '1 day left' : `${dl} days left`;
+  const dl = daysLeft(expiry);
+  let color = 'var(--green)', pct = Math.min(100, Math.max(0, (dl/30)*100));
+  if (dl <= 0) { color = 'var(--red)'; pct = 100; }
+  else if (dl <= 3) color = 'var(--red)';
+  else if (dl <= 7) color = 'var(--amber)';
+  const label = dl < 0 ? 'Expired' : dl === 0 ? 'Today' : `${dl}d left`;
   return `<div class="expiry-bar-wrap"><div class="expiry-bar"><div class="expiry-fill" style="width:${pct}%;background:${color}"></div></div><span class="expiry-label">${label}</span></div>`;
 }
 
@@ -305,6 +309,10 @@ function custName(id) {
   return customers.find(c => c.id === id)?.name || 'Unknown';
 }
 
+const ICON_USERS = '<svg class="i" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+const ICON_CLOCK = '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+const ICON_RECEIPT = '<svg class="i" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>';
+
 // ─── RENDER DASHBOARD ────────────────────────────────────────
 function renderDashboard() {
   const active = customers.filter(c => c.status === 'Active').length;
@@ -313,23 +321,23 @@ function renderDashboard() {
   const thisMonth = new Date().toISOString().slice(0,7);
   const monthRev = sales.filter(s => s.month === thisMonth).reduce((a,b) => a + b.amount, 0);
 
+  document.getElementById('dash-period').textContent = new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   document.getElementById('stat-active').textContent = active;
-  document.getElementById('stat-monthly').textContent = '৳' + monthRev.toLocaleString();
+  document.getElementById('stat-monthly').textContent = tk(monthRev);
   document.getElementById('stat-expiring').textContent = expiring3;
   document.getElementById('stat-pending').textContent = pending;
 
-  // Revenue chart
+  // Revenue chart: current month in the accent, the rest neutral
   const months = {}; sales.forEach(s => { months[s.month] = (months[s.month]||0) + s.amount; });
   const sorted = Object.entries(months).sort().slice(-6);
   const chart = document.getElementById('revenue-chart');
-  if (sorted.length === 0) { chart.innerHTML = '<div class="empty" style="width:100%;padding:20px 0"><p>No sales yet</p></div>'; }
+  if (sorted.length === 0) { chart.innerHTML = `<div class="empty" style="width:100%;align-self:center">${ICON_RECEIPT}<p>No sales yet</p></div>`; }
   else {
     const max = Math.max(...sorted.map(x=>x[1]));
+    const months2 = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     chart.innerHTML = sorted.map(([m, v]) => {
       const h = max > 0 ? Math.round((v/max)*100) : 0;
-      const ml = m.slice(5); // MM
-      const months2 = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return `<div class="bar-col"><div class="bar" style="height:${h}%" title="৳${v}"><span class="bar-val">৳${v}</span><span class="bar-label">${months2[parseInt(ml)]}</span></div></div>`;
+      return `<div class="bar-col"><div class="bar${m === thisMonth ? ' now' : ''}" style="height:${h}%" title="${tk(v)}"><span class="bar-val">${tk(v)}</span><span class="bar-label">${months2[parseInt(m.slice(5))]}</span></div></div>`;
     }).join('');
   }
 
@@ -337,22 +345,18 @@ function renderDashboard() {
   const expList = customers.filter(c => c.status === 'Active' && daysLeft(c.expiry) <= 7 && daysLeft(c.expiry) >= 0)
     .sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).slice(0, 5);
   const expEl = document.getElementById('dash-expiring-list');
-  if (expList.length === 0) expEl.innerHTML = '<div class="empty" style="padding:20px 0"><p>No expiring customers</p></div>';
-  else expEl.innerHTML = expList.map(c => {
-    const dl = daysLeft(c.expiry);
-    const col = dl <= 3 ? 'var(--red)' : 'var(--amber)';
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div><div style="font-size:13.5px;font-weight:500">${c.name}</div><div style="font-size:11px;color:var(--muted)">${c.group||c.contact}</div></div>
-      <span style="font-size:12px;color:${col};font-weight:500">${dl === 0 ? 'Today!' : dl + 'd left'}</span>
-    </div>`;
-  }).join('');
+  if (expList.length === 0) expEl.innerHTML = `<div class="empty compact">${ICON_CLOCK}<p>Nobody expires this week</p></div>`;
+  else expEl.innerHTML = expList.map(c => `<div class="mini-row">
+      <div><div class="td-name">${c.name}</div><div class="td-muted">${c.group||c.contact}</div></div>
+      ${expiryBar(c.expiry)}
+    </div>`).join('');
 
   // Recent sales
   const recent = [...sales].sort((a,b) => b.date.localeCompare(a.date)).slice(0,5);
   const rsEl = document.getElementById('dash-recent-sales');
-  if (recent.length === 0) rsEl.innerHTML = '<div class="empty"><p>No sales recorded yet</p></div>';
-  else rsEl.innerHTML = `<table><thead><tr><th>Customer</th><th>Amount</th><th>Date</th><th>Method</th></tr></thead><tbody>
-    ${recent.map(s => `<tr><td class="td-name">${custName(s.custId)}</td><td>৳${s.amount}</td><td>${fmtDate(s.date)}</td><td>${s.method}</td></tr>`).join('')}
+  if (recent.length === 0) rsEl.innerHTML = `<div class="empty">${ICON_RECEIPT}<p>No sales recorded yet</p></div>`;
+  else rsEl.innerHTML = `<table><thead><tr><th>Customer</th><th>Date</th><th>Method</th><th class="num">Amount</th></tr></thead><tbody>
+    ${recent.map(s => `<tr><td class="td-name">${custName(s.custId)}</td><td class="td-meta">${fmtDate(s.date)}</td><td>${s.method}</td><td class="num">${tk(s.amount)}</td></tr>`).join('')}
   </tbody></table>`;
 }
 
@@ -363,19 +367,19 @@ function renderCustomers() {
   const q = document.getElementById('customer-search')?.value?.toLowerCase() || '';
   if (q) list = list.filter(c => c.name.toLowerCase().includes(q) || c.contact.includes(q) || (c.group||'').toLowerCase().includes(q));
   const el = document.getElementById('customers-table');
-  if (list.length === 0) { el.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg><p>No customers found</p></div>'; return; }
-  el.innerHTML = `<table><thead><tr><th>Name</th><th>Group</th><th>Plan</th><th>Price</th><th>Expiry</th><th>Status</th><th>Approved</th><th>Actions</th></tr></thead><tbody>
+  if (list.length === 0) { el.innerHTML = `<div class="empty">${ICON_USERS}<p>No customers found</p></div>`; return; }
+  el.innerHTML = `<table><thead><tr><th>Name</th><th>Group</th><th>Plan</th><th class="num">Price</th><th>Expiry</th><th>Status</th><th>Approved</th><th></th></tr></thead><tbody>
     ${list.map(c => `<tr>
-      <td><div class="td-name">${c.name}</div><div class="td-muted">${c.contact}</div></td>
-      <td><div style="font-size:13px">${c.group||'—'}</div></td>
+      <td><div class="td-name">${c.name}</div><div class="td-muted mono">${c.contact}</div></td>
+      <td>${c.group||'—'}</td>
       <td>${planPill(c.plan)}</td>
-      <td>৳${c.price}</td>
+      <td class="num">${tk(c.price)}</td>
       <td>${expiryBar(c.expiry)}</td>
       <td>${statusBadge(c.status)}</td>
-      <td><div class="toggle-wrap"><button class="toggle ${c.status==='Active'?'on':''}" onclick="toggleApproval('${c.id}')"></button><span style="font-size:11px;color:var(--muted)">${c.status==='Active'?'On':'Off'}</span></div></td>
+      <td><div class="toggle-wrap"><button class="toggle ${c.status==='Active'?'on':''}" onclick="toggleApproval('${c.id}')" aria-label="Approve ${c.name}" aria-pressed="${c.status==='Active'}"></button><span>${c.status==='Active'?'On':'Off'}</span></div></td>
       <td><div class="actions">
-        <button class="btn btn-ghost btn-sm" onclick="openModal('customer','${c.id}')">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button>
+        <button class="btn btn-quiet btn-sm" onclick="openModal('customer','${c.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Delete</button>
       </div></td>
     </tr>`).join('')}
   </tbody></table>`;
@@ -393,16 +397,16 @@ function filterCustomers(f) {
 function renderSales() {
   const list = [...sales].sort((a,b) => b.date.localeCompare(a.date));
   const el = document.getElementById('sales-table');
-  if (list.length === 0) { el.innerHTML = '<div class="empty"><p>No sales recorded yet. Click "Record Sale" to add one.</p></div>'; return; }
-  el.innerHTML = `<table><thead><tr><th>Customer</th><th>Amount</th><th>Plan</th><th>Method</th><th>TXN / Note</th><th>Date</th><th></th></tr></thead><tbody>
+  if (list.length === 0) { el.innerHTML = `<div class="empty">${ICON_RECEIPT}<p>No sales yet. Use Record sale to add the first payment.</p></div>`; return; }
+  el.innerHTML = `<table><thead><tr><th>Customer</th><th>Date</th><th>Plan</th><th>Method</th><th>Transaction ID</th><th class="num">Amount</th><th></th></tr></thead><tbody>
     ${list.map(s => `<tr>
       <td class="td-name">${custName(s.custId)}</td>
-      <td><strong>৳${s.amount}</strong></td>
+      <td class="td-meta">${fmtDate(s.date)}</td>
       <td>${planPill(s.plan)}</td>
       <td>${s.method}</td>
-      <td><span style="font-size:12px;color:var(--muted)">${s.txn||'—'}</span></td>
-      <td>${fmtDate(s.date)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteSale('${s.id}')">Del</button></td>
+      <td class="td-meta">${s.txn||'—'}</td>
+      <td class="num">${tk(s.amount)}</td>
+      <td><div class="actions"><button class="btn btn-danger btn-sm" onclick="deleteSale('${s.id}')">Delete</button></div></td>
     </tr>`).join('')}
   </tbody></table>`;
 }
@@ -418,12 +422,12 @@ function renderRevenue() {
     return a + (c.price / days * 30);
   }, 0);
   const avg = active.length > 0 ? total / active.length : 0;
-  document.getElementById('rev-total').textContent = '৳'+Math.round(total).toLocaleString();
-  document.getElementById('rev-month').textContent = '৳'+Math.round(monthRev).toLocaleString();
-  document.getElementById('rev-expected').textContent = '৳'+Math.round(expected).toLocaleString();
-  document.getElementById('rev-avg').textContent = '৳'+Math.round(avg).toLocaleString();
+  document.getElementById('rev-total').textContent = tk(total);
+  document.getElementById('rev-month').textContent = tk(monthRev);
+  document.getElementById('rev-expected').textContent = tk(expected);
+  document.getElementById('rev-avg').textContent = tk(avg);
   const months2 = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  document.getElementById('rev-month-label').textContent = months2[parseInt(thisMonth.slice(5))];
+  document.getElementById('rev-month-label').textContent = months2[parseInt(thisMonth.slice(5))] + ' ' + thisMonth.slice(0,4);
 
   const byMonth = {}; sales.forEach(s => {
     if (!byMonth[s.month]) byMonth[s.month] = {total:0, count:0};
@@ -431,11 +435,11 @@ function renderRevenue() {
   });
   const rows = Object.entries(byMonth).sort((a,b)=>b[0].localeCompare(a[0]));
   const el = document.getElementById('rev-table');
-  if (rows.length === 0) { el.innerHTML = '<div class="empty"><p>No revenue data yet</p></div>'; return; }
-  el.innerHTML = `<table><thead><tr><th>Month</th><th>Revenue</th><th>Payments</th><th>Avg per Sale</th></tr></thead><tbody>
+  if (rows.length === 0) { el.innerHTML = `<div class="empty">${ICON_RECEIPT}<p>No revenue yet</p></div>`; return; }
+  el.innerHTML = `<table><thead><tr><th>Month</th><th class="num">Payments</th><th class="num">Avg per sale</th><th class="num">Revenue</th></tr></thead><tbody>
     ${rows.map(([m,v])=>{
       const [y,mo]=m.split('-');
-      return `<tr><td>${months2[parseInt(mo)]} ${y}</td><td><strong>৳${Math.round(v.total).toLocaleString()}</strong></td><td>${v.count}</td><td>৳${Math.round(v.total/v.count)}</td></tr>`;
+      return `<tr><td>${months2[parseInt(mo)]} ${y}</td><td class="num">${v.count}</td><td class="num">${tk(v.total/v.count)}</td><td class="num">${tk(v.total)}</td></tr>`;
     }).join('')}
   </tbody></table>`;
 }
@@ -450,32 +454,36 @@ function renderExpiry(days) {
     .sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry));
   const el = document.getElementById('expiry-list');
   if (list.length === 0) {
-    el.innerHTML = `<div class="card"><div class="empty"><svg viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px;opacity:0.2"><path d="M12 1a11 11 0 1 0 0 22A11 11 0 0 0 12 1zm0 20a9 9 0 1 1 0-18 9 9 0 0 1 0 18zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg><p>No customers expiring in next ${days} days</p></div></div>`;
+    el.innerHTML = `<div class="card"><div class="empty">${ICON_CLOCK}<p>Nobody expires in the next ${days} days</p></div></div>`;
     return;
   }
   el.innerHTML = list.map(c => {
     const dl = daysLeft(c.expiry);
     const urgency = dl <= 1 ? 'var(--red)' : dl <= 3 ? 'var(--amber)' : 'var(--text)';
-    return `<div class="card" style="margin-bottom:12px;border-color:${dl<=3?'rgba(239,68,68,0.2)':'var(--border)'}">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;gap:14px;align-items:center">
-          <div style="width:42px;height:42px;border-radius:10px;background:var(--accent-glow);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--accent2)">${c.name[0]}</div>
+    const count = dl === 0
+      ? `<span class="cd-num" style="color:${urgency}">Today</span>`
+      : `<span class="cd-num" style="color:${urgency}">${dl}</span><span class="cd-unit">${dl === 1 ? 'day' : 'days'} left</span>`;
+    return `<div class="card renew-card${dl<=3?' urgent':''}">
+      <div class="renew-top">
+        <div class="renew-who">
+          <div class="initial">${c.name[0]}</div>
           <div>
-            <div style="font-weight:500;font-size:15px">${c.name}</div>
-            <div style="font-size:12px;color:var(--muted)">${c.group||c.contact}</div>
+            <div class="renew-name">${c.name}</div>
+            <div class="td-muted">${c.group||c.contact}</div>
           </div>
         </div>
-        <div style="text-align:right">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:${urgency}">${dl === 0 ? 'Today!' : dl + ' days left'}</div>
-          <div style="font-size:12px;color:var(--muted)">Expires ${fmtDate(c.expiry)}</div>
+        <div class="countdown">
+          <div>${count}</div>
+          <div class="td-meta">Expires ${fmtDate(c.expiry)}</div>
         </div>
       </div>
-      <div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-        ${planPill(c.plan)} <span style="color:var(--muted);font-size:13px">৳${c.price}</span>
-        <span style="color:var(--muted);font-size:13px">${c.contact}</span>
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button class="btn btn-success btn-sm" onclick="openModal('sale')">Record Renewal</button>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('customer','${c.id}')">Edit</button>
+      <div class="renew-foot">
+        ${planPill(c.plan)}
+        <span class="mono">${tk(c.price)}</span>
+        <span class="mono">${c.contact}</span>
+        <div class="actions">
+          <button class="btn btn-quiet btn-sm" onclick="openModal('customer','${c.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('sale')">Record renewal</button>
         </div>
       </div>
     </div>`;
@@ -558,4 +566,5 @@ async function loadData() {
   renderDots();
 }
 
+setDate();
 loadData();
